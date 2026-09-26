@@ -1,0 +1,38 @@
+<main class="settings-page">
+  <section class="settings-card">
+    <div class="settings-header">
+      <p class="eyebrow">Connection</p>
+      <h1>Backend settings</h1>
+      <p>
+        Point the Capacitor app at the backend host your iPhone or simulator can actually reach.
+      </p>
+    </div>
+
+    <form class="settings-form" (ngSubmit)="save()">
+      <label>
+        <span>Backend URL</span>
+        <input
+          type="url"
+          name="backendUrl"
+          [(ngModel)]="backendUrl"
+          placeholder="https://192.168.1.20:3443"
+          [disabled]="loading"
+        />
+      </label>
+
+      @if (savedMessage) {
+        <div class="info-box">{{ savedMessage }}</div>
+      }
+
+      <div class="actions">
+        <button type="submit">Save</button>
+        <button type="button" class="secondary-button" (click)="reset()">Reset default</button>
+      </div>
+    </form>
+
+    <div class="footer-actions">
+      <a routerLink="/login">Back to login</a>
+      <button type="button" class="secondary-button" (click)="done()">Done</button>
+    </div>
+  </section>
+</main>

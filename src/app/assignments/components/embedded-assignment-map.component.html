@@ -1,0 +1,26 @@
+<section class="assignment-map-card">
+  <div class="assignment-map-header">
+    <div>
+      <p class="map-label">Selected assignment</p>
+      <h3>{{ assignment?.title || 'No assignment selected' }}</h3>
+    </div>
+
+    <div class="map-meta">
+      <span>{{ geometryCount() }} geometries</span>
+    </div>
+  </div>
+
+  <div class="assignment-map-body">
+    @if (!assignment) {
+      <div class="map-overlay">Select an assignment to preview its map geometry.</div>
+    }
+
+    @if (loading() && assignment) {
+      <div class="map-overlay subtle">Loading geometry...</div>
+    }
+
+    <div #mapContainer class="map-canvas"></div>
+  </div>
+
+  <p class="map-status">{{ statusMessage() }}</p>
+</section>

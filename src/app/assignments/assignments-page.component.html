@@ -1,0 +1,191 @@
+<main class="assignments-page">
+  <header class="app-bar">
+    <div class="app-mark">
+      <span class="app-mark-badge">GE</span>
+      <div>
+        <p class="app-mark-label">GeoEntrepreneur</p>
+        <p class="app-mark-subtitle">Assignments</p>
+      </div>
+    </div>
+
+    <div class="app-bar-actions">
+      <a class="ghost-button" routerLink="/settings">Settings</a>
+      <button type="button" class="refresh-button" (click)="logout()">Sign out</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div>
+      <p class="eyebrow">Assignments</p>
+      <h1>Your work queue</h1>
+      <p class="hero-copy">
+        Review assignments that are active for your account and track what you have already completed.
+      </p>
+    </div>
+
+    <div class="hero-actions">
+      <div class="user-chip">
+        <span class="user-chip-label">Signed in as</span>
+        <span class="user-chip-value">{{ currentUserLabel() }}</span>
+      </div>
+      <button type="button" class="refresh-button" (click)="reload()" [disabled]="loading()">
+        @if (loading()) {
+          Refreshing...
+        } @else {
+          Refresh
+        }
+      </button>
+    </div>
+  </section>
+
+  <section class="stats-grid">
+    <article class="stat-card">
+      <span class="stat-label">Active</span>
+      <strong>{{ activeCount() }}</strong>
+    </article>
+    <article class="stat-card">
+      <span class="stat-label">Completed</span>
+      <strong>{{ completedCount() }}</strong>
+    </article>
+    <article class="stat-card stat-card-wide">
+      <span class="stat-label">Total visible</span>
+      <strong>{{ totalCount() }}</strong>
+    </article>
+  </section>
+
+  <div class="assignments-workspace">
+    <div class="assignments-list-column">
+      @if (loading()) {
+        <section class="loading-card">
+          <div class="loading-bar loading-bar-title"></div>
+          <div class="loading-bar"></div>
+          <div class="loading-bar short"></div>
+        </section>
+      } @else {
+        <section class="assignment-section">
+          <div class="section-header">
+            <div>
+              <p class="section-label">Active assignments</p>
+              <h2>Work in progress</h2>
+            </div>
+          </div>
+
+          @if (activeAssignments().length === 0) {
+            <div class="empty-state">
+              <span class="empty-icon">📭</span>
+              <h3>No active assignments</h3>
+              <p>Nothing is currently assigned to this account.</p>
+            </div>
+          } @else {
+            <div class="assignment-grid">
+              @for (assignment of activeAssignments(); track assignment.assignment_id) {
+                <article class="assignment-card" [class.expanded]="expandedAssignmentId() === assignment.assignment_id" [class.selected]="selectedAssignmentId() === assignment.assignment_id">
+                  <button type="button" class="assignment-summary" (click)="selectAssignment(assignment); toggleExpanded(assignment.assignment_id)">
+                    <div class="assignment-heading">
+                      <span class="status-pill" [class]="assignmentService.getStatusClass(assignment.status)">
+                        {{ assignmentService.getStatusLabel(assignment.status) }}
+                      </span>
+                      <h3>{{ assignment.title }}</h3>
+                    </div>
+                    <span class="chevron">{{ expandedAssignmentId() === assignment.assignment_id ? '−' : '+' }}</span>
+                  </button>
+
+                  <div class="assignment-meta">
+                    <span>{{ getGeometryCountLabel(assignment.map_geometry_ids.length) }}</span>
+                    @if (assignment.due_date) {
+                      <span>Due {{ assignment.due_date | date:'mediumDate' }}</span>
+                    }
+                  </div>
+
+                  @if (expandedAssignmentId() === assignment.assignment_id) {
+                    <div class="assignment-body">
+                      @if (assignment.description) {
+                        <p class="description">{{ assignment.description }}</p>
+                      }
+
+                      <dl class="details-list">
+                        <div>
+                          <dt>Customer</dt>
+                          <dd>{{ assignmentService.getUserDisplayName(assignment.customer_id) || 'Unknown' }}</dd>
+                        </div>
+                        <div>
+                          <dt>Supplier</dt>
+                          <dd>{{ assignment.supplier_id ? (assignmentService.getUserDisplayName(assignment.supplier_id) || 'Unknown') : 'Not assigned' }}</dd>
+                        </div>
+                        <div>
+                          <dt>Assignment ID</dt>
+                          <dd>{{ assignment.assignment_id }}</dd>
+                        </div>
+                      </dl>
+
+                      @if (assignment.activities_json.length > 0) {
+                        <div class="activities">
+                          <h4>Activities</h4>
+                          <div class="activity-list">
+                            @for (activity of assignment.activities_json; track activity.activity_id) {
+                              <div class="activity-item">
+                                <div>
+                                  <strong>{{ activity.name }}</strong>
+                                  @if (activity.description) {
+                                    <p>{{ activity.description }}</p>
+                                  }
+                                </div>
+                                <span class="activity-status">{{ activity.status }}</span>
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+                </article>
+              }
+            </div>
+          }
+        </section>
+
+        <section class="assignment-section completed-section">
+          <div class="section-header">
+            <div>
+              <p class="section-label">Completed assignments</p>
+              <h2>Finished work</h2>
+            </div>
+          </div>
+
+          @if (completedAssignments().length === 0) {
+            <div class="empty-state muted">
+              <span class="empty-icon">✅</span>
+              <h3>No completed assignments</h3>
+              <p>Completed work will appear here after it is marked done.</p>
+            </div>
+          } @else {
+            <div class="assignment-grid compact">
+              @for (assignment of completedAssignments(); track assignment.assignment_id) {
+                <article class="assignment-card completed" [class.selected]="selectedAssignmentId() === assignment.assignment_id">
+                  <div class="assignment-summary static-summary" (click)="selectAssignment(assignment)">
+                    <div class="assignment-heading">
+                      <span class="status-pill" [class]="assignmentService.getStatusClass(assignment.status)">
+                        {{ assignmentService.getStatusLabel(assignment.status) }}
+                      </span>
+                      <h3>{{ assignment.title }}</h3>
+                    </div>
+                  </div>
+                  <div class="assignment-meta">
+                    <span>{{ getGeometryCountLabel(assignment.map_geometry_ids.length) }}</span>
+                    @if (assignment.completed_at) {
+                      <span>Completed {{ assignment.completed_at | date:'mediumDate' }}</span>
+                    }
+                  </div>
+                </article>
+              }
+            </div>
+          }
+        </section>
+      }
+    </div>
+
+    <aside class="assignment-map-column">
+      <app-embedded-assignment-map [assignment]="selectedAssignment()" />
+    </aside>
+  </div>
+</main>

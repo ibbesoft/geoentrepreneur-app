@@ -1,0 +1,61 @@
+<main class="login-page">
+  <section class="login-card">
+    <div class="brand-chip">
+      <span class="brand-mark">GE</span>
+      <div>
+        <p class="brand-label">GeoEntrepreneur</p>
+        <p class="brand-subtitle">Mobile workspace</p>
+      </div>
+    </div>
+
+    <div class="login-copy">
+      <p class="eyebrow">GeoEntrepreneur</p>
+      <h1>Sign in to see your assignments</h1>
+      <p>
+        Use your account to load the assignments currently assigned to you and continue where you left off.
+      </p>
+    </div>
+
+    <form class="login-form" (ngSubmit)="onSubmit()">
+      <label>
+        <span>Email</span>
+        <input
+          type="email"
+          name="email"
+          [(ngModel)]="email"
+          placeholder="user@company.com"
+          required
+          [disabled]="loading"
+        />
+      </label>
+
+      <label>
+        <span>Password</span>
+        <input
+          type="password"
+          name="password"
+          [(ngModel)]="password"
+          placeholder="Your password"
+          required
+          [disabled]="loading"
+        />
+      </label>
+
+      @if (errorMessage) {
+        <div class="error-box">{{ errorMessage }}</div>
+      }
+
+      <button type="submit" [disabled]="loading">
+        @if (loading) {
+          Logging in...
+        } @else {
+          Sign in
+        }
+      </button>
+    </form>
+
+    <div class="login-footer-actions">
+      <a routerLink="/settings">Backend settings</a>
+    </div>
+  </section>
+</main>
