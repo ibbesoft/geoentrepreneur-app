@@ -1,20 +1,47 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Assignment } from './assignment.models';
+import {
+  Assignment,
+  CreateAssignmentCommand,
+  DeleteAssignmentCommand,
+  PublishAssignmentCommand,
+  UpdateAssignmentCommand
+} from './assignment.models';
 import { AuthService, UserInfo } from './auth.service';
+import { BackendConfigService } from './backend-config.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AssignmentService {
   private readonly authService = inject(AuthService);
+  private readonly backendConfig = inject(BackendConfigService);
 
+  readonly assignments = signal<Assignment[]>([]);
+  readonly awaitingSupplierAssignments = signal<Assignment[]>([]);
   readonly activeAssignments = signal<Assignment[]>([]);
   readonly completedAssignments = signal<Assignment[]>([]);
+  readonly loading = signal(false);
+  readonly loadingAwaitingSupplier = signal(false);
   readonly loadingActive = signal(false);
   readonly loadingCompleted = signal(false);
 
   private readonly userCache = new Map<string, UserInfo | null>();
   readonly userNames = signal<Map<string, string>>(new Map());
+
+  async loadAssignments(): Promise<void> {
+    this.loading.set(true);
+
+    try {
+      const assignments = await this.getAssignments();
+      this.assignments.set(assignments);
+      await this.loadUserNames(assignments);
+    } catch (error) {
+      console.error('Error loading assignments:', error);
+      this.assignments.set([]);
+    } finally {
+      this.loading.set(false);
+    }
+  }
 
   async loadActiveAssignments(): Promise<void> {
     this.loadingActive.set(true);
@@ -43,6 +70,21 @@ export class AssignmentService {
       this.completedAssignments.set([]);
     } finally {
       this.loadingCompleted.set(false);
+    }
+  }
+
+  async loadAwaitingSupplierAssignments(): Promise<void> {
+    this.loadingAwaitingSupplier.set(true);
+
+    try {
+      const assignments = await this.getAwaitingSupplierAssignments();
+      this.awaitingSupplierAssignments.set(assignments);
+      await this.loadUserNames(assignments);
+    } catch (error) {
+      console.error('Error loading assignments awaiting supplier:', error);
+      this.awaitingSupplierAssignments.set([]);
+    } finally {
+      this.loadingAwaitingSupplier.set(false);
     }
   }
 
@@ -85,7 +127,7 @@ export class AssignmentService {
 
   async getActiveAssignments(): Promise<Assignment[]> {
     const response = await this.authService.authenticatedFetch(
-      `${this.authService.getBaseUrl()}/queries/assignments/active`
+      `${this.backendConfig.getBaseUrl()}/queries/assignments/active`
     );
 
     if (response.status === 404) {
@@ -101,7 +143,7 @@ export class AssignmentService {
 
   async getCompletedAssignments(): Promise<Assignment[]> {
     const response = await this.authService.authenticatedFetch(
-      `${this.authService.getBaseUrl()}/queries/assignments/completed`
+      `${this.backendConfig.getBaseUrl()}/queries/assignments/completed`
     );
 
     if (response.status === 404) {
@@ -113,6 +155,172 @@ export class AssignmentService {
     }
 
     return await response.json();
+  }
+
+  async getAssignments(): Promise<Assignment[]> {
+    const response = await this.authService.authenticatedFetch(
+      `${this.backendConfig.getBaseUrl()}/queries/assignments`
+    );
+
+    if (response.status === 404) {
+      return [];
+    }
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch assignments');
+    }
+
+    return await response.json();
+  }
+
+  async getAwaitingSupplierAssignments(): Promise<Assignment[]> {
+    const response = await this.authService.authenticatedFetch(
+      `${this.backendConfig.getBaseUrl()}/queries/assignments/awaiting_supplier`
+    );
+
+    if (response.status === 404) {
+      return [];
+    }
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch assignments awaiting supplier');
+    }
+
+    return await response.json();
+  }
+
+  async createAssignment(command: CreateAssignmentCommand): Promise<void> {
+    const response = await this.authService.authenticatedFetch(
+      `${this.backendConfig.getBaseUrl()}/commands/assignment`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(command)
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to create assignment');
+    }
+  }
+
+  async updateAssignment(command: UpdateAssignmentCommand): Promise<void> {
+    const response = await this.authService.authenticatedFetch(
+      `${this.backendConfig.getBaseUrl()}/commands/assignment/${command.assignment_id}`,
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(command)
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to update assignment');
+    }
+  }
+
+  async deleteAssignment(assignmentId: string): Promise<void> {
+    const command: DeleteAssignmentCommand = {
+      type: 'DELETE_ASSIGNMENT',
+      assignment_id: assignmentId
+    };
+    const response = await this.authService.authenticatedFetch(
+      `${this.backendConfig.getBaseUrl()}/commands/assignment/${assignmentId}`,
+      {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(command)
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to delete assignment');
+    }
+  }
+
+  async publishAssignment(assignmentId: string): Promise<void> {
+    const command: PublishAssignmentCommand = {
+      type: 'PUBLISH_ASSIGNMENT',
+      assignment_id: assignmentId
+    };
+    const response = await this.authService.authenticatedFetch(
+      `${this.backendConfig.getBaseUrl()}/commands/assignment/${assignmentId}/publish`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(command)
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to publish assignment');
+    }
+  }
+
+  async assignSupplier(assignmentId: string, supplierId: string): Promise<void> {
+    const response = await this.authService.authenticatedFetch(
+      `${this.backendConfig.getBaseUrl()}/commands/assignment/assign_supplier`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assignment_id: assignmentId, supplier_id: supplierId })
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to assign supplier');
+    }
+  }
+
+  async createAgreement(assignmentId: string, supplierId: string, title: string): Promise<void> {
+    const response = await this.authService.authenticatedFetch(
+      `${this.backendConfig.getBaseUrl()}/commands/agreement`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          assignment_id: assignmentId,
+          supplier_id: supplierId,
+          title,
+          description: '',
+          document_key: ''
+        })
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to create agreement');
+    }
+  }
+
+  async activateAssignment(assignmentId: string): Promise<void> {
+    const response = await this.authService.authenticatedFetch(
+      `${this.backendConfig.getBaseUrl()}/commands/assignment/activate`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assignment_id: assignmentId })
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to activate assignment');
+    }
+  }
+
+  async completeAssignment(assignmentId: string): Promise<void> {
+    const response = await this.authService.authenticatedFetch(
+      `${this.backendConfig.getBaseUrl()}/commands/assignment/complete`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assignment_id: assignmentId })
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to complete assignment');
+    }
   }
 
   getUserDisplayName(userId: string | undefined): string {

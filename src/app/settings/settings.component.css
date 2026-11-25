@@ -6,7 +6,11 @@
   min-height: 100dvh;
   display: grid;
   place-items: center;
-  padding: max(16px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
+  padding:
+    max(16px, env(safe-area-inset-top))
+    max(16px, env(safe-area-inset-right))
+    max(24px, env(safe-area-inset-bottom))
+    max(16px, env(safe-area-inset-left));
   background:
     radial-gradient(circle at top left, rgba(60, 122, 255, 0.24), transparent 32%),
     radial-gradient(circle at bottom right, rgba(24, 189, 143, 0.18), transparent 30%),
@@ -114,4 +118,34 @@ button {
   background: rgba(255, 255, 255, 0.06);
   color: #f3f7fb;
   text-decoration: none;
+}
+
+@media (max-width: 520px) {
+  .settings-page {
+    place-items: start;
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
+
+  .settings-card {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  h1 {
+    font-size: clamp(1.8rem, 9vw, 2.4rem);
+  }
+
+  .actions,
+  .footer-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  button,
+  .secondary-button,
+  .footer-actions a {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
 }

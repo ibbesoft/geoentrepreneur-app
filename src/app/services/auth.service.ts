@@ -39,6 +39,7 @@ export class AuthService {
 
   private accessToken: string | null = null;
   private refreshPromise: Promise<string | null> | null = null;
+  private restorePromise: Promise<void> | null = null;
 
   readonly isAuthenticated = signal(false);
   readonly currentUser = signal<User | null>(null);
@@ -48,22 +49,33 @@ export class AuthService {
   }
 
   async restoreSession(): Promise<void> {
-    try {
-      const accessToken = await this.refreshAccessToken();
-      if (!accessToken) {
-        this.isAuthenticated.set(false);
-        this.currentUser.set(null);
-        return;
-      }
-
-      this.accessToken = accessToken;
-      await this.fetchUserInfo();
-    } catch (error) {
-      console.log('No valid session to restore');
-      this.isAuthenticated.set(false);
-      this.currentUser.set(null);
-      this.accessToken = null;
+    if (this.accessToken && this.isAuthenticated()) {
+      return;
     }
+
+    if (this.restorePromise) {
+      return this.restorePromise;
+    }
+
+    this.restorePromise = (async () => {
+      try {
+        const accessToken = await this.refreshAccessToken();
+        if (!accessToken) {
+          this.clearSession();
+          return;
+        }
+
+        this.accessToken = accessToken;
+        await this.fetchUserInfo();
+      } catch (error) {
+        console.log('No valid session to restore');
+        this.clearSession();
+      } finally {
+        this.restorePromise = null;
+      }
+    })();
+
+    return this.restorePromise;
   }
 
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
@@ -119,9 +131,7 @@ export class AuthService {
       this.isAuthenticated.set(true);
     } catch (error) {
       console.error('Fetch user info error:', error);
-      this.isAuthenticated.set(false);
-      this.currentUser.set(null);
-      this.accessToken = null;
+      this.clearSession();
     }
   }
 
@@ -186,9 +196,7 @@ export class AuthService {
       const accessToken = await this.refreshAccessToken();
 
       if (!accessToken) {
-        this.accessToken = null;
-        this.currentUser.set(null);
-        this.isAuthenticated.set(false);
+        await this.logout();
         throw new Error('Session expired');
       }
 
@@ -208,14 +216,16 @@ export class AuthService {
     try {
       await fetch(`${this.getBaseUrl()}/auth/logout`, {
         method: 'POST',
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
       });
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      this.accessToken = null;
-      this.currentUser.set(null);
-      this.isAuthenticated.set(false);
+      this.clearSession();
       await this.router.navigate(['/login']);
     }
   }
@@ -251,5 +261,11 @@ export class AuthService {
 
   getBaseUrl(): string {
     return this.backendConfig.getBaseUrl();
+  }
+
+  private clearSession(): void {
+    this.accessToken = null;
+    this.currentUser.set(null);
+    this.isAuthenticated.set(false);
   }
 }

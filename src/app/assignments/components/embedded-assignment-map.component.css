@@ -7,7 +7,7 @@
   display: grid;
   gap: 14px;
   height: 100%;
-  min-height: 520px;
+  min-height: 460px;
 }
 
 .assignment-map-header {
@@ -38,7 +38,7 @@ p {
 .assignment-map-body {
   position: relative;
   flex: 1;
-  min-height: 420px;
+  min-height: 360px;
   border-radius: 22px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -48,7 +48,7 @@ p {
 .map-canvas {
   width: 100%;
   height: 100%;
-  min-height: 420px;
+  min-height: 360px;
 }
 
 .map-overlay {
@@ -67,4 +67,15 @@ p {
 .map-status {
   color: #b9c9dc;
   line-height: 1.5;
+}
+
+@media (max-width: 720px) {
+  .assignment-map-card {
+    min-height: 380px;
+  }
+
+  .assignment-map-body,
+  .map-canvas {
+    min-height: clamp(240px, 48dvh, 320px);
+  }
 }

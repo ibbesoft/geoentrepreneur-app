@@ -66,6 +66,7 @@
           "builder": "@angular/build:dev-server",
           "options": {
             "host": "internal.geoentrepreneur.se",
+            "port": 4201,
             "ssl": true,
             "sslKey": "ssl/internal.key",
             "sslCert": "ssl/internal.crt",

@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">geoentrepreneur-app</string>
     <string name="title_activity_main">geoentrepreneur-app</string>
-    <string name="package_name">se.geoentrepereneur.app</string>
-    <string name="custom_url_scheme">se.geoentrepereneur.app</string>
+    <string name="package_name">se.geoentrepreneur.app</string>
+    <string name="custom_url_scheme">se.geoentrepreneur.app</string>
 </resources>

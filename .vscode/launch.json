@@ -15,6 +15,26 @@
       "request": "launch",
       "preLaunchTask": "npm: test",
       "url": "http://localhost:9876/debug.html"
+    },
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:geoentrepreneur-app}/SwiftAuthExample",
+      "name": "Debug SwiftAuthExample (SwiftAuthExample)",
+      "target": "SwiftAuthExample",
+      "configuration": "debug",
+      "preLaunchTask": "swift: Build Debug SwiftAuthExample (SwiftAuthExample)"
+    },
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:geoentrepreneur-app}/SwiftAuthExample",
+      "name": "Release SwiftAuthExample (SwiftAuthExample)",
+      "target": "SwiftAuthExample",
+      "configuration": "release",
+      "preLaunchTask": "swift: Build Release SwiftAuthExample (SwiftAuthExample)"
     }
   ]
 }

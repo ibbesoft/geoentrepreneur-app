@@ -23,3 +23,37 @@ export interface Assignment {
   completed_at?: string;
   version: number;
 }
+
+export interface CreateAssignmentActivity {
+  name: string;
+  description?: string;
+}
+
+export interface CreateAssignmentCommand {
+  type: 'CREATE_ASSIGNMENT';
+  title: string;
+  description?: string;
+  map_geometry_ids: string[];
+  activities: CreateAssignmentActivity[];
+  due_date?: string;
+}
+
+export interface UpdateAssignmentCommand {
+  type: 'UPDATE_ASSIGNMENT';
+  assignment_id: string;
+  title: string;
+  description?: string;
+  map_geometry_ids: string[];
+  activities: CreateAssignmentActivity[];
+  due_date?: string;
+}
+
+export interface DeleteAssignmentCommand {
+  type: 'DELETE_ASSIGNMENT';
+  assignment_id: string;
+}
+
+export interface PublishAssignmentCommand {
+  type: 'PUBLISH_ASSIGNMENT';
+  assignment_id: string;
+}

@@ -25,7 +25,11 @@ app-root {
 
 .assignments-page {
 	min-height: 100dvh;
-	padding: max(16px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
+	padding:
+		max(16px, env(safe-area-inset-top))
+		max(16px, env(safe-area-inset-right))
+		max(24px, env(safe-area-inset-bottom))
+		max(16px, env(safe-area-inset-left));
 	color: #f3f7fb;
 	background:
 		radial-gradient(circle at top left, rgba(60, 122, 255, 0.28), transparent 34%),
@@ -99,6 +103,11 @@ app-root {
 	border: 1px solid rgba(255, 255, 255, 0.08);
 	border-radius: 24px;
 	background: rgba(7, 16, 30, 0.76);
+}
+
+.hero h1 {
+	margin: 0;
+	font-size: clamp(1.7rem, 5vw, 2.4rem);
 }
 
 .hero-copy {
@@ -388,8 +397,8 @@ app-root {
 
 @media (max-width: 720px) {
 	.assignments-page {
-		padding-left: 16px;
-		padding-right: 16px;
+		padding-left: max(14px, env(safe-area-inset-left));
+		padding-right: max(14px, env(safe-area-inset-right));
 	}
 
 	.app-bar {
@@ -398,8 +407,13 @@ app-root {
 	}
 
 	.hero {
+		padding: 20px;
 		flex-direction: column;
 		align-items: stretch;
+	}
+
+	.user-chip {
+		min-width: 0;
 	}
 
 	.assignments-workspace {
@@ -419,5 +433,35 @@ app-root {
 	.assignment-body {
 		padding-left: 16px;
 		padding-right: 16px;
+	}
+
+	.assignment-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media (max-width: 390px) {
+	.hero {
+		padding: 16px;
+	}
+
+	.app-bar-actions {
+		width: 100%;
+	}
+
+	.ghost-button,
+	.refresh-button {
+		flex: 1;
+		justify-content: center;
+	}
+
+	.stat-card strong {
+		font-size: 1.6rem;
+	}
+}
+
+@media (max-height: 430px) and (orientation: landscape) {
+	.assignment-map-column {
+		position: static;
 	}
 }

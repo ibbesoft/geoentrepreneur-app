@@ -1,4 +1,4 @@
-package se.geoentrepereneur.app;
+package se.geoentrepreneur.app;
 
 import com.getcapacitor.BridgeActivity;
 
