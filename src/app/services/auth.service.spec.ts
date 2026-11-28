@@ -16,7 +16,10 @@ describe('AuthService', () => {
         AuthService,
         {
           provide: BackendConfigService,
-          useValue: { getBaseUrl: () => baseUrl }
+          useValue: {
+            getBaseUrl: () => baseUrl,
+            getEventsUrl: () => `${baseUrl}/events`
+          }
         },
         {
           provide: Router,

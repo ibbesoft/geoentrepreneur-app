@@ -43,7 +43,7 @@
 				<key>NSTemporaryExceptionAllowsInsecureHTTPLoads</key>
 				<true/>
 			</dict>
-			<key>172.20.10.2</key>
+			<key>192.168.1.164</key>
 			<dict>
 				<key>NSIncludesSubdomains</key>
 				<true/>

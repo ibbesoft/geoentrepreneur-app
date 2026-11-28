@@ -18,10 +18,14 @@ export class AssignmentService {
 
   readonly assignments = signal<Assignment[]>([]);
   readonly awaitingSupplierAssignments = signal<Assignment[]>([]);
+  readonly awaitingAgreementAssignments = signal<Assignment[]>([]);
+  readonly awaitingActivationAssignments = signal<Assignment[]>([]);
   readonly activeAssignments = signal<Assignment[]>([]);
   readonly completedAssignments = signal<Assignment[]>([]);
   readonly loading = signal(false);
   readonly loadingAwaitingSupplier = signal(false);
+  readonly loadingAwaitingAgreement = signal(false);
+  readonly loadingAwaitingActivation = signal(false);
   readonly loadingActive = signal(false);
   readonly loadingCompleted = signal(false);
 
@@ -88,6 +92,36 @@ export class AssignmentService {
     }
   }
 
+  async loadAwaitingAgreementAssignments(): Promise<void> {
+    this.loadingAwaitingAgreement.set(true);
+
+    try {
+      const assignments = await this.getAssignmentsByQuery('awaiting_agreement');
+      this.awaitingAgreementAssignments.set(this.onlyAssignedToCurrentSupplier(assignments));
+      await this.loadUserNames(assignments);
+    } catch (error) {
+      console.error('Error loading assignments awaiting agreement:', error);
+      this.awaitingAgreementAssignments.set([]);
+    } finally {
+      this.loadingAwaitingAgreement.set(false);
+    }
+  }
+
+  async loadAwaitingActivationAssignments(): Promise<void> {
+    this.loadingAwaitingActivation.set(true);
+
+    try {
+      const assignments = await this.getAssignmentsByQuery('awaiting_activation');
+      this.awaitingActivationAssignments.set(this.onlyAssignedToCurrentSupplier(assignments));
+      await this.loadUserNames(assignments);
+    } catch (error) {
+      console.error('Error loading assignments awaiting activation:', error);
+      this.awaitingActivationAssignments.set([]);
+    } finally {
+      this.loadingAwaitingActivation.set(false);
+    }
+  }
+
   private async loadUserNames(assignments: Assignment[]): Promise<void> {
     const userIds = new Set<string>();
 
@@ -138,7 +172,14 @@ export class AssignmentService {
       throw new Error('Failed to fetch active assignments');
     }
 
-    return await response.json();
+    const assignments = await response.json() as Assignment[];
+    const supplierId = this.authService.currentUser()?.user_id;
+    if (!supplierId) {
+      return [];
+    }
+    return assignments.filter(assignment =>
+      assignment.supplier_id === supplierId
+    );
   }
 
   async getCompletedAssignments(): Promise<Assignment[]> {
@@ -174,8 +215,12 @@ export class AssignmentService {
   }
 
   async getAwaitingSupplierAssignments(): Promise<Assignment[]> {
+    return this.getAssignmentsByQuery('awaiting_supplier');
+  }
+
+  private async getAssignmentsByQuery(query: 'awaiting_supplier' | 'awaiting_agreement' | 'awaiting_activation'): Promise<Assignment[]> {
     const response = await this.authService.authenticatedFetch(
-      `${this.backendConfig.getBaseUrl()}/queries/assignments/awaiting_supplier`
+      `${this.backendConfig.getBaseUrl()}/queries/assignments/${query}`
     );
 
     if (response.status === 404) {
@@ -183,10 +228,17 @@ export class AssignmentService {
     }
 
     if (!response.ok) {
-      throw new Error('Failed to fetch assignments awaiting supplier');
+      throw new Error(`Failed to fetch assignments for ${query}`);
     }
 
-    return await response.json();
+    return await response.json() as Assignment[];
+  }
+
+  private onlyAssignedToCurrentSupplier(assignments: Assignment[]): Assignment[] {
+    const supplierId = this.authService.currentUser()?.user_id;
+    return supplierId
+      ? assignments.filter(assignment => assignment.supplier_id === supplierId)
+      : [];
   }
 
   async createAssignment(command: CreateAssignmentCommand): Promise<void> {

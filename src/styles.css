@@ -171,8 +171,8 @@ app-root {
 .assignments-workspace {
 	max-width: 1100px;
 	margin: 0 auto;
-	display: grid;
-	grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+	display: flex;
+	flex-direction: column;
 	gap: 18px;
 	align-items: start;
 }
@@ -183,8 +183,218 @@ app-root {
 }
 
 .assignment-map-column {
-	position: sticky;
-	top: 16px;
+	position: static;
+	width: 100%;
+}
+
+.assignment-map-actions {
+	margin-top: 12px;
+	display: grid;
+	gap: 8px;
+}
+
+.complete-assignment-button,
+.assign-assignment-button {
+	width: fit-content;
+}
+
+.assignment-action-hint,
+.assignment-action-error {
+	margin: 0;
+	font-size: 0.86rem;
+}
+
+.assignment-action-hint {
+	color: #91a9c4;
+}
+
+.assignment-action-error {
+	color: #ffb2b2;
+}
+
+.assignment-workflow-info {
+	margin: 2px 0 0;
+	padding: 10px 12px;
+	border-radius: 12px;
+	font-size: 0.86rem;
+	line-height: 1.45;
+	color: #c9dcf4;
+	background: rgba(107, 140, 255, 0.12);
+	border: 1px solid rgba(107, 140, 255, 0.25);
+}
+
+.mobile-assignment-carousel-section {
+	display: block;
+	width: 100%;
+	min-width: 0;
+}
+
+.mobile-carousel-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: end;
+	gap: 16px;
+	margin-bottom: 12px;
+}
+
+.assignment-filter {
+	display: grid;
+	grid-template-columns: repeat(6, minmax(108px, 1fr));
+	gap: 4px;
+	margin: 0 0 14px;
+	padding: 4px;
+	overflow-x: auto;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 16px;
+	background: rgba(7, 16, 30, 0.72);
+}
+
+.assignment-filter legend {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+.assignment-filter label {
+	min-width: 0;
+	position: relative;
+	cursor: pointer;
+}
+
+.assignment-filter input {
+	position: absolute;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.assignment-filter span {
+	display: block;
+	min-height: 40px;
+	padding: 10px 8px;
+	border-radius: 12px;
+	color: #91a9c4;
+	font-size: 0.84rem;
+	font-weight: 700;
+	text-align: center;
+	transition: color 160ms ease, background 160ms ease;
+}
+
+.assignment-filter input:checked + span {
+	background: linear-gradient(135deg, #6b8cff 0%, #67dbc5 100%);
+	color: #06111f;
+}
+
+.assignment-filter input:focus-visible + span {
+	outline: 2px solid #9abaff;
+	outline-offset: 2px;
+}
+
+.carousel-count {
+	min-width: 36px;
+	padding: 7px 10px;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.06);
+	color: #dce8f6;
+	text-align: center;
+	font-weight: 700;
+}
+
+.mobile-assignment-carousel {
+	--mobile-card-width: min(72vw, 320px);
+	display: grid;
+	grid-auto-flow: column;
+	grid-auto-columns: var(--mobile-card-width);
+	gap: 14px;
+	overflow-x: auto;
+	overscroll-behavior-x: contain;
+	scroll-snap-type: x mandatory;
+	scroll-padding-inline: calc((100% - var(--mobile-card-width)) / 2);
+	padding:
+		4px
+		calc((100% - var(--mobile-card-width)) / 2)
+		12px;
+	margin-inline: -14px;
+	scrollbar-width: none;
+	-webkit-overflow-scrolling: touch;
+	touch-action: pan-x;
+}
+
+.mobile-assignment-carousel::-webkit-scrollbar {
+	display: none;
+}
+
+.mobile-assignment-card {
+	aspect-ratio: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 12px;
+	padding: 20px;
+	overflow: hidden;
+	scroll-snap-align: center;
+	scroll-snap-stop: always;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 24px;
+	background: linear-gradient(145deg, rgba(18, 35, 58, 0.98), rgba(8, 18, 32, 0.98));
+	box-shadow: 0 16px 36px rgba(0, 0, 0, 0.2);
+	color: #f3f7fb;
+	text-align: left;
+	transform: scale(0.94);
+	opacity: 0.68;
+	transition: transform 180ms ease, opacity 180ms ease, border-color 180ms ease;
+	appearance: none;
+	-webkit-appearance: none;
+}
+
+.mobile-assignment-card.selected {
+	border-color: rgba(103, 219, 197, 0.75);
+	box-shadow:
+		0 0 0 1px rgba(103, 219, 197, 0.26),
+		0 20px 44px rgba(0, 0, 0, 0.28);
+	transform: scale(1);
+	opacity: 1;
+}
+
+.mobile-assignment-title {
+	font-size: clamp(1.15rem, 5vw, 1.45rem);
+	font-weight: 750;
+	line-height: 1.15;
+}
+
+.mobile-assignment-description {
+	display: -webkit-box;
+	overflow: hidden;
+	color: #b9c9dc;
+	font-size: 0.9rem;
+	line-height: 1.45;
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical;
+}
+
+.mobile-assignment-meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 12px;
+	margin-top: auto;
+	color: #95adc8;
+	font-size: 0.82rem;
+}
+
+.carousel-hint {
+	margin: 2px 0 0;
+	color: #829bb7;
+	font-size: 0.8rem;
+	text-align: center;
+}
+
+.assignments-list-column {
+	display: none;
 }
 
 .assignment-card.selected {
@@ -416,12 +626,8 @@ app-root {
 		min-width: 0;
 	}
 
-	.assignments-workspace {
-		grid-template-columns: 1fr;
-	}
-
-	.assignment-map-column {
-		position: static;
+	.mobile-assignment-carousel {
+		--mobile-card-width: min(72vw, 280px);
 	}
 
 	.stats-grid {

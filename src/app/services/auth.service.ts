@@ -1,4 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
+import { CapacitorCookies } from '@capacitor/core';
 import { Router } from '@angular/router';
 import { BackendConfigService } from './backend-config.service';
 
@@ -226,6 +227,14 @@ export class AuthService {
       console.error('Logout error:', error);
     } finally {
       this.clearSession();
+      try {
+        await CapacitorCookies.deleteCookie({
+          url: this.backendConfig.getEventsUrl(),
+          key: 'access_token'
+        });
+      } catch (error) {
+        console.warn('Unable to clear SSE access cookie:', error);
+      }
       await this.router.navigate(['/login']);
     }
   }

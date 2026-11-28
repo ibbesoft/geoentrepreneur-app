@@ -38,21 +38,6 @@
     </div>
   </section>
 
-  <section class="stats-grid">
-    <article class="stat-card">
-      <span class="stat-label">Active</span>
-      <strong>{{ activeCount() }}</strong>
-    </article>
-    <article class="stat-card">
-      <span class="stat-label">Completed</span>
-      <strong>{{ completedCount() }}</strong>
-    </article>
-    <article class="stat-card stat-card-wide">
-      <span class="stat-label">Total visible</span>
-      <strong>{{ totalCount() }}</strong>
-    </article>
-  </section>
-
   <div class="assignments-workspace">
     <div class="assignments-list-column">
       @if (loading()) {
@@ -186,6 +171,156 @@
 
     <aside class="assignment-map-column">
       <app-embedded-assignment-map [assignment]="selectedAssignment()" />
+      @if (selectedAssignment(); as selected) {
+        <div class="assignment-map-actions">
+          @if (selectedAssignmentCanAssign()) {
+            <button
+              type="button"
+              class="refresh-button assign-assignment-button"
+              [disabled]="assigningAssignmentId() === selected.assignment_id"
+              (click)="assignSelectedAssignmentToMe()">
+              @if (assigningAssignmentId() === selected.assignment_id) {
+                Assigning...
+              } @else {
+                Assign to me
+              }
+            </button>
+          } @else if (selectedAssignmentCanComplete()) {
+            <button
+              type="button"
+              class="refresh-button complete-assignment-button"
+              [disabled]="completingAssignmentId() === selected.assignment_id"
+              (click)="completeSelectedAssignment()">
+              @if (completingAssignmentId() === selected.assignment_id) {
+                Completing...
+              } @else {
+                Mark as completed
+              }
+            </button>
+          } @else if (selected.status === 'Active') {
+            <p class="assignment-action-hint">
+              Only the assigned supplier can complete this assignment.
+            </p>
+          }
+
+          @if (assignmentActionError()) {
+            <p class="assignment-action-error">{{ assignmentActionError() }}</p>
+          }
+
+          @if (selectedSupplierWorkflowInfo(); as workflowInfo) {
+            <p class="assignment-workflow-info">{{ workflowInfo }}</p>
+          }
+        </div>
+      }
     </aside>
+
+    <section class="mobile-assignment-carousel-section">
+      <div class="section-header mobile-carousel-header">
+        <div>
+          <p class="section-label">Assignments</p>
+          <h2>Swipe to explore</h2>
+        </div>
+        <span class="carousel-count">{{ filteredAssignments().length }}</span>
+      </div>
+
+      <fieldset class="assignment-filter">
+        <legend>Show assignments</legend>
+        <label>
+          <input
+            type="radio"
+            name="assignment-filter"
+            value="all"
+            [checked]="assignmentFilter() === 'all'"
+            (change)="setAssignmentFilter('all')" />
+          <span>All ({{ totalCount() }})</span>
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="assignment-filter"
+            value="published"
+            [checked]="assignmentFilter() === 'published'"
+            (change)="setAssignmentFilter('published')" />
+          <span>Published ({{ publishedCount() }})</span>
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="assignment-filter"
+            value="awaiting-agreement"
+            [checked]="assignmentFilter() === 'awaiting-agreement'"
+            (change)="setAssignmentFilter('awaiting-agreement')" />
+          <span>Agreement ({{ awaitingAgreementCount() }})</span>
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="assignment-filter"
+            value="ready-to-activate"
+            [checked]="assignmentFilter() === 'ready-to-activate'"
+            (change)="setAssignmentFilter('ready-to-activate')" />
+          <span>Ready ({{ readyToActivateCount() }})</span>
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="assignment-filter"
+            value="active"
+            [checked]="assignmentFilter() === 'active'"
+            (change)="setAssignmentFilter('active')" />
+          <span>Active ({{ activeCount() }})</span>
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="assignment-filter"
+            value="completed"
+            [checked]="assignmentFilter() === 'completed'"
+            (change)="setAssignmentFilter('completed')" />
+          <span>Completed ({{ completedCount() }})</span>
+        </label>
+      </fieldset>
+
+      @if (filteredAssignments().length > 0) {
+        <div
+          #assignmentCarousel
+          class="mobile-assignment-carousel"
+          aria-label="Assignment carousel"
+          (scroll)="updateCenteredAssignment()">
+          @for (assignment of filteredAssignments(); track assignment.assignment_id) {
+            <button
+              type="button"
+              class="mobile-assignment-card"
+              [class.selected]="selectedAssignmentId() === assignment.assignment_id"
+              [attr.data-assignment-id]="assignment.assignment_id"
+              [attr.aria-pressed]="selectedAssignmentId() === assignment.assignment_id"
+              (click)="selectCarouselAssignment(assignment.assignment_id)">
+              <span class="status-pill" [class]="assignmentService.getStatusClass(assignment.status)">
+                {{ assignmentService.getStatusLabel(assignment.status) }}
+              </span>
+              <span class="mobile-assignment-title">{{ assignment.title }}</span>
+              @if (assignment.description) {
+                <span class="mobile-assignment-description">{{ assignment.description }}</span>
+              }
+              <span class="mobile-assignment-meta">
+                <span>{{ getGeometryCountLabel(assignment.map_geometry_ids.length) }}</span>
+                @if (assignment.due_date) {
+                  <span>Due {{ assignment.due_date | date:'mediumDate' }}</span>
+                } @else if (assignment.completed_at) {
+                  <span>Done {{ assignment.completed_at | date:'mediumDate' }}</span>
+                }
+              </span>
+            </button>
+          }
+        </div>
+        <p class="carousel-hint">Cards snap to center and update the map.</p>
+      } @else if (!loading()) {
+        <div class="empty-state">
+          <span class="empty-icon">📭</span>
+          <h3>No {{ assignmentFilter() === 'all' ? '' : assignmentFilter() }} assignments</h3>
+          <p>There are no assignments in this view right now.</p>
+        </div>
+      }
+    </section>
   </div>
 </main>
